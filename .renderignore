@@ -1,0 +1,14 @@
+# Files Render should ignore during deploy sync
+# (Render reads the entire repo, so this prevents accidental env leaks)
+.env
+.env.local
+.env.production
+*.key
+*.pem
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+DOWNLOADS/
+node_modules/
+.git/

@@ -1,0 +1,23 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ULTRA-MINIMAL Render Blueprint — fallback if main render.yaml fails to sync
+# ─────────────────────────────────────────────────────────────────────────────
+# This blueprint creates the service with ZERO env vars. After sync, add ALL
+# env vars manually in Render dashboard → Environment tab:
+#
+#   BOT_TOKEN=...         (from @BotFather)
+#   API_ID=...            (from my.telegram.org)
+#   API_HASH=...          (from my.telegram.org)
+#   OWNER_ID=...          (your Telegram user ID)
+#   DATABASE_URL=...      (MongoDB Atlas connection string)
+#   LOG_CHANNEL=-100...   (private Telegram channel ID)
+#
+# To use this file:
+#   1. Rename it to render.yaml (overwriting the original)
+#   2. Push to GitHub
+#   3. Render → New → Blueprint → select your repo
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  - type: web
+    name: telegram-url-uploader
+    runtime: docker
+    plan: free

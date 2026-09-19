@@ -97,6 +97,87 @@ Open http://localhost:8080 in a browser to test the Mini App.
 
 ---
 
+## 🛠️ Troubleshooting — Render Blueprint Sync Failures
+
+If `render.yaml` fails to sync, the most common causes are listed below in order of frequency. Try them one at a time.
+
+### 1. Service name conflict (most common)
+
+Render rejects blueprints that try to create a service whose name already exists in your account.
+
+**Fix:** Either delete the old service in Render dashboard, or edit `render.yaml` and change the `name:` field to something unique (e.g. `telegram-url-uploader-v2`).
+
+```yaml
+services:
+  - type: web
+    name: telegram-url-uploader-v2   # ← change this
+    ...
+```
+
+### 2. Docker runtime not enabled on your account
+
+Some new Render accounts don't have Docker web services enabled by default.
+
+**Fix:** Go to Render dashboard → **Account Settings** → **Billing** and add a credit card (Render's free Docker web services require verification, even though you won't be charged). Or try `runtime: python` with `buildCommand: pip install -r requirements.txt` and `startCommand: python bot.py` instead of Docker.
+
+### 3. Free plan not available in your region
+
+Render's free tier isn't available in all regions.
+
+**Fix:** Edit `render.yaml` and either remove the `plan: free` line (Render picks the cheapest paid plan, ~$7/mo) or add `region: oregon` (most permissive region):
+
+```yaml
+services:
+  - type: web
+    name: telegram-url-uploader
+    runtime: docker
+    region: oregon   # or ohio, frankfurt, singapore
+```
+
+### 4. The `render.yaml.minimal` fallback
+
+If none of the above worked, use the ultra-minimal blueprint that has zero env vars:
+
+```bash
+# In your repo root:
+mv render.yaml render.yaml.full
+mv render.yaml.minimal render.yaml
+git add render.yaml render.yaml.full
+git commit -m "Switch to minimal render.yaml"
+git push
+```
+
+Then in Render dashboard → New → Blueprint → select your repo. After the service is created, add ALL env vars manually in the Environment tab.
+
+### 5. Manual web service (no Blueprint at all)
+
+If Blueprints are still failing, skip them entirely:
+
+1. Render → **New +** → **Web Service** → connect your GitHub repo
+2. **Name:** `telegram-url-uploader`
+3. **Runtime:** Docker
+4. **Region:** Oregon (or your preference)
+5. **Instance Type:** Free
+6. **Health Check Path:** `/health` (optional)
+7. Click **Advanced** → add env vars one-by-one:
+   - `BOT_TOKEN`, `API_ID`, `API_HASH`, `OWNER_ID`, `DATABASE_URL`, `LOG_CHANNEL`
+   - `WEBAPP_URL` (optional — auto-detected from `RENDER_EXTERNAL_URL`)
+   - `KEEP_ALIVE_INTERVAL=600` (optional — auto-enabled on Render)
+8. **Create Web Service**
+
+### 6. Other common errors
+
+| Error | Fix |
+|---|---|
+| `Invalid YAML syntax` | Check render.yaml with `python3 -c "import yaml; yaml.safe_load(open('render.yaml'))"` |
+| `Field 'X' is not allowed` | Remove that field — Render's spec changes between versions |
+| `Dockerfile not found` | Make sure `Dockerfile` (capital D, no extension) is in the repo root |
+| `Build failed: out of memory` | Reduce Docker image size — set `BUILD_CHROMIUM=0` and `BUILD_NODE=0` (the default) |
+| `Deploy failed: health check timeout` | Render probes `/` which returns 503 during startup. Wait 60s — Render retries. If still failing, set Health Check Grace Period to 60s in dashboard. |
+| `Bot won't connect` | Check that `BOT_TOKEN`, `API_ID`, `API_HASH` are set correctly in Render Environment tab |
+
+---
+
 ## 🐛 Bug Fixes in This Fork
 
 This fork fixes the following bugs found in the upstream repo:

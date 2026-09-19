@@ -1,39 +1,38 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Render Blueprint for URL Uploader Bot
+# Render Blueprint — minimal & maximally compatible
 # Docs: https://render.com/docs/blueprint-spec
 #
-# Creates ONE free-tier Docker web service.
-# The Dockerfile lives in the repo root and builds in ~3–5 min on Render's
-# free tier (no Playwright/Node by default).
+# This is intentionally minimal. After the service is created, add your
+# secret env vars (BOT_TOKEN, API_ID, API_HASH, OWNER_ID, DATABASE_URL,
+# LOG_CHANNEL) in Render's Environment tab.
 #
-# Required env vars (set in Render dashboard, marked sync:false below):
-#   BOT_TOKEN, API_ID, API_HASH, OWNER_ID, DATABASE_URL, LOG_CHANNEL
-#
-# WEBAPP_URL is NOT required — the app auto-detects Render's RENDER_EXTERNAL_URL
-# env var on every deploy.
-#
-# To enable heavy services (paid Render plan recommended):
-#   - Set ENABLE_PLAYWRIGHT=true (and add Docker Build Arg BUILD_CHROMIUM=1)
-#   - Set ENABLE_PO_TOKEN_SERVER=true (and add Docker Build Arg BUILD_NODE=1)
-#   - Set ENABLE_ARIA2=true
+# WEBAPP_URL is auto-detected from Render's RENDER_EXTERNAL_URL — no action
+# needed. PORT is auto-injected by Render. RENDER=true is auto-injected.
 # ─────────────────────────────────────────────────────────────────────────────
 services:
   - type: web
     name: telegram-url-uploader
     runtime: docker
     plan: free
-    region: singapore   # change to your preferred region: oregon, frankfurt, ohio, singapore
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
-    # Render auto-detects PORT env var; FastAPI listens on Config.PORT inside.
-    healthCheckPath: /health
     autoDeploy: true
-    # Render injects these automatically at runtime — no need to set them:
-    #   PORT (the port to bind to)
-    #   RENDER_EXTERNAL_URL (the public https://...onrender.com URL)
-    #   RENDER (true)
     envVars:
-      # ── Telegram credentials (REQUIRED — set in Render dashboard) ──
+      # Optional tunables — feel free to delete or change
+      - key: ALLOW_BOT_URL_UPLOAD
+        value: "true"
+      - key: FFMPEG_PATH
+        value: "/usr/bin/ffmpeg"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: KEEP_ALIVE_INTERVAL
+        value: "600"
+      - key: ENABLE_PLAYWRIGHT
+        value: "false"
+      - key: ENABLE_PO_TOKEN_SERVER
+        value: "false"
+      - key: ENABLE_ARIA2
+        value: "false"
+      # Secrets — Render will prompt you to fill these in the dashboard
+      # after sync. Leave value empty.
       - key: BOT_TOKEN
         sync: false
       - key: API_ID
@@ -42,31 +41,7 @@ services:
         sync: false
       - key: OWNER_ID
         sync: false
-      # ── MongoDB Atlas (REQUIRED — set in Render dashboard) ──
       - key: DATABASE_URL
         sync: false
-      # ── Log channel (REQUIRED — set in Render dashboard) ──
       - key: LOG_CHANNEL
         sync: false
-      # ── WEBAPP_URL is OPTIONAL — auto-detected from RENDER_EXTERNAL_URL ──
-      # Only set this if you want to override the auto-detected value.
-      - key: WEBAPP_URL
-        sync: false
-      # ── Optional heavy services — default OFF to fit free-tier RAM ──
-      - key: ENABLE_PLAYWRIGHT
-        value: "false"
-      - key: ENABLE_PO_TOKEN_SERVER
-        value: "false"
-      - key: ENABLE_ARIA2
-        value: "false"
-      # ── Keep-alive: self-ping /health every 10 min to mitigate sleep ──
-      # Auto-enabled on Render. Set to "0" to disable.
-      - key: KEEP_ALIVE_INTERVAL
-        value: "600"
-      # ── Misc tunables ──
-      - key: ALLOW_BOT_URL_UPLOAD
-        value: "true"
-      - key: FFMPEG_PATH
-        value: /usr/bin/ffmpeg
-      - key: PYTHONUNBUFFERED
-        value: "1"

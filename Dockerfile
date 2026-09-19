@@ -120,9 +120,9 @@ ENV PYTHONUNBUFFERED=1
 # Render injects PORT automatically; expose it for documentation only.
 EXPOSE 8080
 
-# ── Healthcheck (Render supports this as a hint, not strictly required) ──────
-HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:${PORT:-8080}/health || exit 1
+# NOTE: No Dockerfile HEALTHCHECK — Render's web service health check is
+# configured in the dashboard (or via render.yaml's healthCheckPath).
+# Having both can cause Render's blueprint sync to fail.
 
 # Start everything via bot.py — it spawns Uvicorn for the FastAPI mini-app
 CMD ["python3", "bot.py"]
