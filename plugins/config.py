@@ -69,9 +69,19 @@ class Config:
     # ── Render / PaaS deployment knobs ────────────────
     # Render injects PORT; fall back to 8080 for local dev.
     PORT: int = int(os.environ.get("PORT", 8080) or 8080)
+
     # Public base URL of this deployment (used to build the Telegram WebApp URL).
-    # On Render, set this to https://<your-service>.onrender.com
-    WEBAPP_URL: str = os.environ.get("WEBAPP_URL", "").rstrip("/")
+    # Priority:
+    #   1. Explicit WEBAPP_URL env var (highest priority)
+    #   2. RENDER_EXTERNAL_URL (auto-injected by Render — zero-config!)
+    #   3. Empty string (warning shown at startup)
+    WEBAPP_URL: str = (
+        os.environ.get("WEBAPP_URL", "").rstrip("/")
+        or os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+    )
+
+    # True when running on Render (Render injects RENDER=true at build/runtime).
+    IS_RENDER: bool = _str_to_bool(os.environ.get("RENDER", "false"), default=False)
 
     # ── Optional heavy services (disabled by default on Render free tier) ──
     # Each of these consumes significant RAM and is not strictly required
@@ -87,4 +97,7 @@ class Config:
     )
     # Self-ping the /health endpoint every N seconds to mitigate Render's
     # 15-minute inactivity sleep. Set KEEP_ALIVE_INTERVAL=0 to disable.
-    KEEP_ALIVE_INTERVAL: int = int(os.environ.get("KEEP_ALIVE_INTERVAL", "600") or 0)
+    # Default: 600s (10 min) only on Render; off by default elsewhere.
+    KEEP_ALIVE_INTERVAL: int = int(
+        os.environ.get("KEEP_ALIVE_INTERVAL", "600" if IS_RENDER else "0") or 0
+    )

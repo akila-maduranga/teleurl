@@ -43,11 +43,10 @@ Upload files up to **2 GB** to Telegram from any URL — including Instagram, Ti
 
 1. Fork this repo to your GitHub account.
 2. Go to [Render → New → Blueprint](https://dashboard.render.com/select-blueprint) and pick your forked repo.
-3. Render reads `render.yaml` and creates a free web service.
+3. Render reads `render.yaml` and creates a free Docker web service.
 4. In Render's **Environment** tab, fill in the secrets (BOT_TOKEN, API_ID, API_HASH, OWNER_ID, DATABASE_URL, LOG_CHANNEL). Leave the optional toggles at their defaults.
-5. Deploy. Render assigns a URL like `https://telegram-url-uploader-xxxx.onrender.com`.
-6. **Important:** After the first deploy, copy that URL, then in Render's Environment tab set `WEBAPP_URL=https://telegram-url-uploader-xxxx.onrender.com` (replacing the placeholder). This is required so the **📱 Open Web Interface** button in Telegram works.
-7. Trigger a redeploy (Render → Manual Deploy → Deploy latest commit).
+5. Deploy. Render assigns a URL like `https://telegram-url-uploader-xxxx.onrender.com` and auto-injects it as `RENDER_EXTERNAL_URL` — the bot picks it up automatically, so **no manual `WEBAPP_URL` setup is needed**.
+6. The Mini App launch button in `/start` will work on the very first deploy. ✅
 
 ### Method B — Manual web service
 
@@ -55,8 +54,8 @@ Upload files up to **2 GB** to Telegram from any URL — including Instagram, Ti
 2. Render → **New +** → **Web Service** → pick the repo.
 3. **Runtime:** Docker. **Plan:** Free.
 4. **Health Check Path:** `/health`.
-5. Add env vars (see `.env.example`).
-6. After deploy, set `WEBAPP_URL` to your onrender.com URL and redeploy.
+5. Add env vars (see `.env.example`). `WEBAPP_URL` is optional — Render auto-injects `RENDER_EXTERNAL_URL`.
+6. Deploy. The Mini App launch button works immediately.
 
 ### What's enabled by default?
 
@@ -157,7 +156,14 @@ Copy `.env.example` to `.env` (local dev) or set them in the Render dashboard. F
 | `OWNER_ID` | Your Telegram user ID (numeric) |
 | `DATABASE_URL` | MongoDB connection string (Atlas or local) |
 | `LOG_CHANNEL` | Private channel ID for upload logs (negative number) |
-| `WEBAPP_URL` | Public HTTPS URL of this deployment (e.g. `https://your-bot.onrender.com`) |
+
+### Auto-detected on Render (no action needed)
+
+| Variable | Description |
+|---|---|
+| `PORT` | Auto-injected by Render; FastAPI binds to it. |
+| `WEBAPP_URL` | Auto-detected from Render's `RENDER_EXTERNAL_URL`. Set explicitly only to override. |
+| `RENDER` | Set to `true` by Render; enables keep-alive by default. |
 
 ### Optional
 

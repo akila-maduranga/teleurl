@@ -111,10 +111,14 @@ if __name__ == "__main__":
 
     if not Config.WEBAPP_URL:
         print(
-            "⚠️  WARNING: WEBAPP_URL is not set. The Mini App launch button in /start "
-            "and /upload will not work. Set it to your Render service URL "
-            "(e.g. https://your-bot.onrender.com)."
+            "⚠️  WARNING: WEBAPP_URL is not set and RENDER_EXTERNAL_URL was not "
+            "auto-injected. The Mini App launch button in /start will not work. "
+            "On Render, this is set automatically after the first deploy."
         )
+    else:
+        print(f"🌐 Mini App URL: {Config.WEBAPP_URL}")
+        if Config.IS_RENDER:
+            print("🚀 Running on Render — keep-alive enabled by default.")
 
     # Ensure download folder exists and is clean on startup
     if os.path.exists(Config.DOWNLOAD_LOCATION):
