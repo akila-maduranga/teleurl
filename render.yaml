@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Render Blueprint for URL Uploader Bot
+# Docs: https://render.com/docs/blueprint-spec
+#
+# This blueprint creates ONE free-tier web service. The Dockerfile lives in the
+# repo root and builds in ~3–5 min on Render's free tier (no Playwright/Node).
+#
+# Required GitHub Secrets or manually-set env values (set in Render dashboard):
+#   BOT_TOKEN, API_ID, API_HASH, OWNER_ID, DATABASE_URL, LOG_CHANNEL, WEBAPP_URL
+#
+# To enable heavy services (paid Render plan recommended):
+#   1. Edit this file → set ENABLE_PLAYWRIGHT/ENABLE_PO_TOKEN_SERVER/ENABLE_ARIA2 = "true"
+#   2. In Render dashboard → Environment → add Docker Build Arg BUILD_CHROMIUM=1
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  - type: web
+    name: telegram-url-uploader
+    runtime: docker
+    plan: free
+    region: singapore   # change to your preferred region
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Render auto-detects PORT env var; FastAPI listens on Config.PORT inside.
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # ── Telegram credentials (REQUIRED — set in Render dashboard) ──
+      - key: BOT_TOKEN
+        sync: false
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: OWNER_ID
+        sync: false
+      # ── MongoDB Atlas (REQUIRED — set in Render dashboard) ──
+      - key: DATABASE_URL
+        sync: false
+      # ── Log channel (REQUIRED — set in Render dashboard) ──
+      - key: LOG_CHANNEL
+        sync: false
+      # ── WEBAPP_URL — Render generates this after first deploy ──
+      # After deploy, copy the onrender.com URL and set WEBAPP_URL in dashboard.
+      - key: WEBAPP_URL
+        sync: false
+      # ── Optional heavy services — default OFF to fit free-tier RAM ──
+      - key: ENABLE_PLAYWRIGHT
+        value: "false"
+      - key: ENABLE_PO_TOKEN_SERVER
+        value: "false"
+      - key: ENABLE_ARIA2
+        value: "false"
+      # ── Keep-alive: self-ping /health every 10 min to mitigate sleep ──
+      - key: KEEP_ALIVE_INTERVAL
+        value: "600"
+      # ── Misc tunables ──
+      - key: ALLOW_BOT_URL_UPLOAD
+        value: "true"
+      - key: FFMPEG_PATH
+        value: /usr/bin/ffmpeg
+      - key: PYTHONUNBUFFERED
+        value: "1"

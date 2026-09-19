@@ -1,0 +1,36 @@
+# ── Docker build context exclusions ──────────────────────────────────────────
+# Keep the build context tiny so Render's free-tier builds stay fast.
+.git
+.gitignore
+.github
+.idea
+.vscode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local-only artifacts
+.env
+.env.local
+DOWNLOADS/
+bin/
+node_modules/
+package-lock.json.bak
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Big files we never need at runtime
+*.zip
+*.tar.gz
+*.tgz
+
+# Docs aren't needed in the image
+docs/
+*.md
+!README.md
